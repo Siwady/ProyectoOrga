@@ -1,6 +1,12 @@
-#include "VGA.h";
+#include "VGA.h"
+#include <stdio.h>      /* printf, scanf, puts, NULL */
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>  
 
 #define LineAmount 6
+#define ObstaculeAmount 4
+#define XPositionAmount 3
+
 int y =0;
 int x=0;
 int object=0;
@@ -9,8 +15,8 @@ int Lives=3;
 int Score=0;
 int PersonAnimation=0;
 int HeartAnimation=0;
+int obstaculeToInstantIndex=1;
 boolean Start=false;
-
 
 unsigned char small_ball[] = { 
     RED, RED, RED, RED, RED, WHITE , 
@@ -20,7 +26,14 @@ unsigned char small_ball[] = {
     RED, RED, RED, RED, RED, WHITE , 
     WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
 };
-
+struct Obstacule{
+  int posX;
+  int posY;
+  int XPosiblePosition[XPositionAmount];
+  int width ;
+  int height;
+  unsigned char *objectToInstantiate;
+};
 struct Line{
   int y1;
   int x1;
@@ -339,10 +352,28 @@ unsigned char Trap[] = {
 };
 
  struct Line lines[LineAmount];
-
+ struct Obstacule Obstacules[ObstaculeAmount];
+ void InitializePositionsObstacules(int x1,int x2,int x3, unsigned char* objectToInstant,int width , int height, int index){
+   Obstacules[index].posY=0;
+   Obstacules[index].XPosiblePosition[0]=x1;
+   Obstacules[index].XPosiblePosition[1]=x2;
+   Obstacules[index].XPosiblePosition[2]=x3;
+   Obstacules[index].posX= Obstacules[index].XPosiblePosition[rand()%XPositionAmount];
+   Obstacules[index].objectToInstantiate=objectToInstant;
+     Obstacules[index].width = width;
+     Obstacules[index].height= height;
+ }
+  
+  
+ void InitializeObstacules()
+ {
+     InitializePositionsObstacules(40,83,115,Car3,20,29,0);
+   InitializePositionsObstacules(50,83,118,Bricks,17,8,1);
+   InitializePositionsObstacules(55,90,123,Cone,5,4,2);
+   InitializePositionsObstacules(50,90,123,Trap,19,2,3);
+ }
 void setup(){
-
-   
+   srand(0);
   VGA.begin(VGAWISHBONESLOT(9),CHARMAPWISHBONESLOT(10));
   
   
@@ -363,6 +394,7 @@ void setup(){
      y1=y2+=20;
         
    }
+   InitializeObstacules();
   //DrawLimits();
 
   //Loading();
@@ -423,7 +455,9 @@ void DrawLimits(){
 void DrawObject(){
     
       VGA.clear();
-           
+      
+       
+      
        // VGA.writeArea(105, 70-(i*8), 20, 29, Car2);
       
       
@@ -433,10 +467,14 @@ void DrawObject(){
         VGA.drawRect( 144, 0, 15, 119 );
         VGA.setBackgroundColor(CYAN);
         VGA.setColor( BLACK );
-        VGA.printtext(0,0,"Score");
+       
+       
+       
+       
         VGA.setColor( RED );
         char* buffers="";
         itoa(Score,buffers,10);
+        VGA.printtext(0,0,"Score");
         VGA.writeArea(0, 11, 8, 8, Coin);
         VGA.printtext(9,11,buffers,true );
         
@@ -448,21 +486,34 @@ void DrawObject(){
           TrafficLightAnimation(); 
           Start=true;
         }
-        DrawCar();
         DrawObstacules();
+        DrawCar();
         
         Score++;
-      
-        
-    
      
-   
     //TESTING DIMENSIONS
     VGA.putPixel(0,0,GREEN);
     VGA.putPixel(0,119,RED);
     VGA.putPixel(158,0,GREEN);
     VGA.putPixel(158,119,GREEN);
 
+}
+
+void TrafficLightAnimation()
+{
+    VGA.setColor( WHITE );
+    VGA.drawRect( 44, 12, 97, 35 );
+    VGA.writeArea(83, 15, 16, 30, TrafficLightRed);
+    delay(800);
+    VGA.writeArea(83, 15, 16, 30, TrafficLightYellow);
+    delay(800);
+    VGA.writeArea(83, 15, 16, 30, TrafficLightGreen);
+    delay(800);
+    VGA.drawRect( 44, 12, 97, 35 );
+    VGA.setColor( BLACK );
+    VGA.setBackgroundColor(WHITE);
+    VGA.printtext(83,25,"GO");
+    delay(500);
 }
 
 void DrawPerson()
@@ -475,7 +526,7 @@ void DrawPerson()
   
   if(PersonAnimation>1)
     PersonAnimation=0;
-};
+}
 
 void DrawCar()
 {
@@ -505,43 +556,23 @@ void DrawLives()
     else
       VGA.writeArea(pos,110 , 9, 8, Heart2);
     pos+=10;
-    HeartAnimation++;
-    if(HeartAnimation>1)
-      HeartAnimation=0;
   }
-  
-}
-
-void TrafficLightAnimation()
-{
-    VGA.setColor( WHITE );
-    VGA.drawRect( 44, 12, 97, 35 );
-    VGA.writeArea(83, 15, 16, 30, TrafficLightRed);
-    delay(500);
-    VGA.writeArea(83, 15, 16, 30, TrafficLightYellow);
-    delay(500);
-    VGA.writeArea(83, 15, 16, 30, TrafficLightGreen);
-    delay(500);
 }
 
 void DrawObstacules()
 {
-      if(x*5 >95){
-        x=0;
-        object++;
-        if(object>3)
-         object=0; 
-      }
+     //obstaculeToInstantIndex = rand() % ObstaculeAmount;   
+    if(Obstacules[obstaculeToInstantIndex].posY>95)
+    {
       
-      if(object==0)
-        VGA.writeArea(117, 0+(x*5), 17, 8, Bricks);  //posx =50 primera fila ,posx=83 segunda fila, posx=118 tercera fila
-      else if(object==1)
-        VGA.writeArea(90, 0+(x*6), 5, 4, Cone); // posx =55 primera fila ,posx=90 segunda fila, posx=123 tercera fila
-      else if(object==2)
-        VGA.writeArea(48, 0+(x*6), 19, 2, Trap); // posx =55 primera fila ,posx=90 segunda fila, posx=123 tercera fila
-      else if(object==3)
-        VGA.writeArea(116, 0+(x*5), 20, 29, Car3); // posx =55 primera fila ,posx=90 segunda fila, posx=123 tercera fila
-      x++;
+      obstaculeToInstantIndex = rand() % ObstaculeAmount;
+       Obstacules[obstaculeToInstantIndex].posX= Obstacules[obstaculeToInstantIndex].XPosiblePosition[rand()%XPositionAmount];  
+       Obstacules[obstaculeToInstantIndex].posY=0;
+    }
+    
+    VGA.writeArea(Obstacules[obstaculeToInstantIndex].posX, Obstacules[obstaculeToInstantIndex].posY, Obstacules[obstaculeToInstantIndex].width, Obstacules[obstaculeToInstantIndex].height, Obstacules[obstaculeToInstantIndex].objectToInstantiate); 
+    Obstacules[obstaculeToInstantIndex].posY +=3;
+
     
 }
 
