@@ -16,7 +16,10 @@ int Score=0;
 int PersonAnimation=0;
 int HeartAnimation=0;
 int obstaculeToInstantIndex=1;
-boolean Start=false;
+int Start=0;
+boolean TrafficLight=false;
+int arrow=0;
+boolean about=false;
 struct Rectangle {
 		unsigned int x1, y1, x2, y2;
 };
@@ -371,6 +374,62 @@ unsigned char Trap[] = {
     WHITE,WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
 };
 
+unsigned char Arrow[]={
+  BLACK,BLACK,BLACK,BLACK,GREEN,GREEN,BLACK,BLACK,BLACK,BLACK,
+  BLACK,BLACK,BLACK,GREEN,GREEN,GREEN,BLACK,BLACK,BLACK,BLACK,
+  BLACK,BLACK,GREEN,GREEN,BLACK,GREEN,GREEN,GREEN,GREEN,GREEN,
+  BLACK,GREEN,GREEN,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,GREEN,
+  GREEN,GREEN,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,GREEN,
+  BLACK,GREEN,GREEN,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,GREEN,
+  BLACK,BLACK,GREEN,GREEN,BLACK,GREEN,GREEN,GREEN,GREEN,GREEN,
+  BLACK,BLACK,BLACK,GREEN,GREEN,GREEN,BLACK,BLACK,BLACK,BLACK,
+  BLACK,BLACK,BLACK,BLACK,GREEN,GREEN,BLACK,BLACK,BLACK,BLACK,
+};
+
+void StartUp(){
+  
+      VGA.setColor(RED);
+      VGA.printtext(30,10," DEATH RACE ");
+      VGA.setBackgroundColor(BLACK);
+      VGA.setColor(WHITE);
+      VGA.printtext(60,40,"Start"); 
+      VGA.printtext(60,60,"About"); 
+      if(arrow==1){
+        VGA.setColor( BLACK );
+        VGA.drawRect( 60, 40, 40,10 );
+        VGA.writeArea(100,40,10,9,Arrow);
+        VGA.drawRect( 100,60, 10,9 );
+      }else{
+        VGA.setColor( BLACK);
+        VGA.drawRect( 60, 60, 40,10 );
+        VGA.drawRect( 100,40, 10,9 );
+        VGA.writeArea(100,60,10,9,Arrow);
+        
+      }
+      if(digitalRead(FPGA_BTN_0))
+        if(arrow==1)
+        {
+           for(int i=0; i<10; i++){
+             if(i%2==0){
+                VGA.setBackgroundColor(BLACK);
+                VGA.printtext(60,40,"Start");
+             }else{
+                VGA.setBackgroundColor(RED);
+                VGA.printtext(60,40,"Start");
+             }
+             delay(150);
+             Start = 1;
+           }
+        }else{
+           Start=2;
+           VGA.clear();
+        }
+       if(digitalRead(FPGA_SW_0))
+         arrow=1;
+       else
+         arrow=0;
+}
+
  struct Line lines[LineAmount];
  struct Obstacule Obstacules[ObstaculeAmount];
  void InitializePositionsObstacules(int x1,int x2,int x3, unsigned char* objectToInstant,int width , int height, int index){
@@ -410,7 +469,7 @@ void setup(){
   VGA.setBackgroundColor(BLACK);
   VGA.setColor(RED);
   
-  VGA.printtext(40,0,"Death Race");
+  
   //VGA.writeArea(0,0, 9, 9, Title);
   delay(1000);
   int  i,x1 =73, x2=107,y1=0, y2=0;
@@ -483,21 +542,19 @@ void DrawLimits(){
 
 void DrawObject(){
     
+      
       VGA.clear();
       
-       
       
        // VGA.writeArea(105, 70-(i*8), 20, 29, Car2);
-      
-      
-      VGA.setColor( GREEN );
+      if(Start==1)
+      {
+        VGA.setColor( GREEN );
       
         VGA.drawRect( 0, 10, 40, 118 );
         VGA.drawRect( 144, 0, 15, 119 );
         VGA.setBackgroundColor(CYAN);
         VGA.setColor( BLACK );
-       
-       
        
        
         VGA.setColor( RED );
@@ -511,15 +568,15 @@ void DrawObject(){
         DrawLines();
         DrawLimits();
         DrawLives();
-        if(!Start){
+        if(!TrafficLight){
           TrafficLightAnimation(); 
-          Start=true;
+          TrafficLight=true;
         }
         DrawObstacules();
         DrawCar();
         
         Score++;
-     
+      }
     //TESTING DIMENSIONS
     VGA.putPixel(0,0,GREEN);
     VGA.putPixel(0,119,RED);
@@ -658,9 +715,29 @@ void DrawLines()
      lines[i].y2+=10;
    }
 }
+
+void About()
+{
+    VGA.setColor(RED);
+    VGA.printtext(50,10," ABOUT ");
+    VGA.printtext(20,30," Mario Ibarra ");
+    VGA.printtext(20,40," Edward Siwady ");
+    VGA.printtext(14,50," Erick Caballero ");
+    if(digitalRead(FPGA_BTN_3)){
+      Start=0;
+      VGA.clear();
+    }
+}
   
 void loop(){
-  //if(Lives!=0)
-  DrawObject();
-  delay(150);
+    //if(Lives!=0)
+  if(Start==0){
+        VGA.printtext(40,0,"Death Race");
+        StartUp();
+  }else if(Start==1){
+        DrawObject();
+         delay(150);
+  }else{
+    About();
+  }
 }
