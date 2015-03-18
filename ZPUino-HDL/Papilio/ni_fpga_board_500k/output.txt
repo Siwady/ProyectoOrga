@@ -1,0 +1,11 @@
+Storage Target: SPI Flash Single FPGA
+4M
+FF
+dasds
+D:\Development\FPGA\ZPUino-HDL\Papilio\ni_fpga_board_500k/
+
+MCS
+No
+S
+No
+
