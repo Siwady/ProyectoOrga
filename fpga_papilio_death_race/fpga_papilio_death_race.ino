@@ -1,32 +1,90 @@
 #include "VGA.h"
-#include <stdio.h>      /* printf, scanf, puts, NULL */
-#include <stdlib.h>     /* srand, rand */
+#include <stdio.h>     
+#include <stdlib.h>     
 #include <time.h>  
 
 #define LineAmount 6
-#define ObstaculeAmount 4
+#define ObstaculeAmount 6
 #define XPositionAmount 3
 #define PointInRectangle(x, y, x1, y1, x2, y2)		((( (x) >= (x1)) && ((y) >= (y1))) && (((x) <= (x2)) && ((y) <= (y2))))
 int y =0;
 int x=0;
-int object=0;
-int CarAnimation=0;
 int Lives=3;
 int Score=0;
-int PersonAnimation=0;
-int HeartAnimation=0;
 int obstaculeToInstantIndex=1;
 int Start=0;
 boolean TrafficLight=false;
 int arrow=0;
 boolean about=false;
 boolean FinishGame=false;
-
+int SkullAnimation=0;
+int Scores[]={
+  0,0,0,0,0,0,0,0,0,0};
+char* buff2="";
+int currentScoreIndex = 0;
+boolean HightScore=true;
 struct Rectangle {
 		unsigned int x1, y1, x2, y2;
 };
 
+void HighScore(int score){
+  if(currentScoreIndex<10)
+    Scores[currentScoreIndex]=score;
+  currentScoreIndex++;
+}
 
+void MergeSort()
+{
+  int hold=0;
+  for(int i=0; i<currentScoreIndex-1; i++)
+  {
+    for(int j=0; j<currentScoreIndex-1; j++)
+    {
+      if(Scores[j]<Scores[j+1])
+      {
+        hold=Scores[j];
+        Scores[j]=Scores[j+1];
+        Scores[j+1]=hold;
+      }
+    }
+  }
+}
+
+
+void ShowHighScore(){
+  if(HightScore){
+      FinishGame=false;
+      int offset = 8;
+      char* scorePrint;
+      VGA.setColor(RED);
+      VGA.printtext(50,2,"HighScore");
+      for(int i =0; i<10; i++){
+        itoa(i+1,buff2,10);
+        VGA.setColor(CYAN);
+        VGA.printtext(70,20+(offset*i),buff2);
+        VGA.setColor(WHITE);
+        itoa(Scores[i],scorePrint,10);
+        if(Scores[i]!=0){
+          VGA.printtext(90,20+(offset*i),scorePrint);
+        }
+        else{
+          VGA.printtext(90,20+(offset*i)," -");
+        }
+      }
+      HightScore=false;
+  }else 
+  {
+    if(digitalRead(FPGA_BTN_2))
+      {
+        VGA.clear();
+        Start=1;
+        Lives=3;
+        Score=0;
+        SkullAnimation=0;
+        HightScore=true;
+      }
+  }
+}
 
 int Collide(struct Rectangle *r1, struct Rectangle *r2)
 {
@@ -43,14 +101,7 @@ struct Sprite{
   unsigned char *image;
   
 };
-unsigned char small_ball[] = { 
-    RED, RED, RED, RED, RED, WHITE , 
-    RED, RED, RED, RED, RED, WHITE , 
-    RED, RED, RED, RED, RED, WHITE , 
-    RED, RED, RED, RED, RED, WHITE , 
-    RED, RED, RED, RED, RED, WHITE , 
-    WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
-};
+
 struct Obstacule{
   int posX;
   int posY;
@@ -224,38 +275,6 @@ unsigned char TrafficLightRed[] = {
     
 };
 
-unsigned char Car2[] = { 
-    BLACK, BLACK,BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,
-    BLACK, BLACK,BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLUE, BLACK, BLACK, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,
-    BLACK, BLACK, BLACK,CYAN, CYAN, YELLOW, YELLOW, CYAN, BLUE, BLUE, BLUE, BLUE, CYAN, YELLOW, YELLOW, CYAN, CYAN, BLACK, BLACK, BLACK,
-    BLACK, BLACK,BLACK, CYAN, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, CYAN, BLACK, BLACK, BLACK,
-    BLACK, BLACK,BLACK, CYAN, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, CYAN, BLACK, BLACK, BLACK,
-    BLACK, BLACK,BLACK, CYAN, CYAN, CYAN, CYAN, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, CYAN, CYAN, CYAN, CYAN, BLACK, BLACK, BLACK,
-    BLACK, BLACK, BLACK,BLACK, BLACK, BLACK, BLACK, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,
-    BLACK, BLACK, BLACK,BLACK, BLACK, BLACK, BLACK, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,
-    BLACK, BLACK, BLACK, BLACK,BLACK, BLACK, BLACK, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,  BLACK,
-    BLACK, BLACK, BLACK, BLACK, WHITE, WHITE, BLACK, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, WHITE, WHITE, BLACK, BLACK, BLACK,  BLACK,
-    BLACK, BLACK, BLACK, WHITE,PURPLE, PURPLE, BLACK, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLACK, PURPLE, PURPLE, WHITE, BLACK, BLACK,  BLACK,
-    BLACK, BLACK, BLACK, WHITE,PURPLE, PURPLE, BLACK, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLACK, PURPLE, PURPLE, WHITE, BLACK, BLACK,  BLACK,
-    BLACK, BLACK, BLACK, WHITE,PURPLE, PURPLE, BLACK, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLACK, PURPLE, PURPLE, WHITE, BLACK, BLACK,  BLACK,
-    BLACK, BLACK, BLACK, BLACK,BLACK, BLACK, BLACK, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,  BLACK,
-    BLACK, BLACK, BLACK, BLACK,BLACK, BLACK, BLACK, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,  BLACK,
-    BLACK, BLACK, BLACK,BLACK, BLACK, BLACK, BLACK, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,  BLACK,
-    BLACK, BLACK, BLACK, BLACK,BLACK, BLACK, BLACK, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,  BLACK,
-    BLACK, BLACK, BLACK, BLACK,BLACK, BLACK, BLACK, BLUE, BLUE, BLACK, BLACK, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,  BLACK,
-    BLACK, BLACK, BLACK, BLACK,BLACK, BLACK, BLACK, BLUE, BLACK, BLACK, BLACK, BLACK, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK,  BLACK,
-    BLACK, BLACK, BLACK,BLACK,BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK,  BLACK,
-    BLACK, WHITE, WHITE, BLACK,BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLUE, BLUE, BLUE, BLUE, BLACK, WHITE, WHITE,   BLACK,
-    WHITE, PURPLE, PURPLE,BLACK, BLUE, BLUE, BLUE, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, PURPLE, PURPLE, WHITE,//HERE
-    WHITE, PURPLE, PURPLE, BLACK,BLUE, BLUE, BLUE, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, PURPLE, PURPLE,  WHITE,
-    WHITE, PURPLE, PURPLE, BLACK,BLUE, BLUE, BLUE, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, PURPLE, PURPLE,  WHITE,
-    WHITE, PURPLE, PURPLE, BLACK,BLUE, BLUE, BLUE, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, PURPLE, PURPLE,  WHITE,
-    BLACK, BLACK, BLACK, BLACK,BLUE, BLUE, BLUE, BLUE, BLUE, WHITE, WHITE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, //HERE 
-    BLACK, BLACK, BLACK,BLACK, BLACK, BLACK, BLACK, WHITE, BLACK, BLACK, BLACK, BLACK, WHITE, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, BLACK, 
-    BLACK, BLACK, BLACK,BLACK, BLACK, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK,
-    BLACK, BLACK, BLACK, BLACK,BLACK, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, 
-    
-};
 unsigned char Car3[]={
     BLACK, BLACK, BLACK,BLACK, BLACK, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK,
     BLACK, BLACK, BLACK, BLACK,BLACK, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLACK, BLACK, BLACK, BLACK, BLACK, 
@@ -300,17 +319,6 @@ unsigned char Heart[]=
     GREEN,GREEN,GREEN,GREEN,BLACK,GREEN,GREEN,GREEN,GREEN,
 };
 
-unsigned char Heart2[]=
-{
-    GREEN,GREEN,BLACK,BLACK,GREEN,BLACK,BLACK,GREEN,GREEN,
-    GREEN,BLACK,PURPLE,PURPLE,BLACK,PURPLE,PURPLE,BLACK,GREEN,
-    BLACK,PURPLE,PURPLE,PURPLE,PURPLE,PURPLE,PURPLE,PURPLE,BLACK,
-    BLACK,PURPLE,PURPLE,PURPLE,PURPLE,PURPLE,PURPLE,PURPLE,BLACK,
-    GREEN,BLACK,PURPLE,PURPLE,PURPLE,PURPLE,PURPLE,BLACK,GREEN,
-    GREEN,GREEN,BLACK,PURPLE,PURPLE,PURPLE,BLACK,GREEN,GREEN,
-    GREEN,GREEN,GREEN,BLACK,PURPLE,BLACK,GREEN,GREEN,GREEN,
-    GREEN,GREEN,GREEN,GREEN,BLACK,GREEN,GREEN,GREEN,GREEN,
-};
 
 unsigned char Coin[]=
 {
@@ -378,18 +386,6 @@ unsigned char Person2[] = {
 
 };
 
-unsigned char Title[]={
-   BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,WHITE,WHITE,
-   WHITE,BLACK,WHITE,WHITE,WHITE,WHITE,WHITE,BLACK,WHITE,
-   WHITE,BLACK,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,BLACK,
-   WHITE,BLACK,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,BLACK,
-   WHITE,BLACK,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,BLACK,
-   WHITE,BLACK,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,BLACK,
-   WHITE,BLACK,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,BLACK,
-   WHITE,BLACK,WHITE,WHITE,WHITE,WHITE,WHITE,BLACK,WHITE,
-   BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,WHITE,WHITE,
-};
-
 unsigned char Cone[] = {
    RED,BLACK,RED,BLACK,RED,
    WHITE,WHITE,WHITE,WHITE,WHITE,
@@ -439,7 +435,33 @@ unsigned char Skull[]=
   RED,RED,RED,RED,BLACK,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,BLACK,RED,RED,RED,RED,
   RED,RED,RED,RED,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,RED,RED,RED,RED,
 };
+unsigned char Water[] = {
+  BLACK,BLUE,BLUE,BLUE,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+  BLUE,CYAN,CYAN,CYAN,BLUE,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+  BLACK,BLUE,BLUE,BLUE,BLACK,BLUE,BLUE,BLACK,BLACK,BLACK,BLACK,
+  BLACK,BLACK,BLACK,BLACK,BLUE,WHITE,WHITE,BLUE,BLUE,BLACK,BLACK,
+  BLACK,BLUE,BLUE,BLUE,WHITE,WHITE,CYAN,CYAN,CYAN,BLUE,BLACK,
+  BLUE,CYAN,CYAN,CYAN,CYAN,CYAN,CYAN,CYAN,CYAN,CYAN,BLUE,
+  BLUE,BLUE,CYAN,CYAN,CYAN,CYAN,CYAN,CYAN,CYAN,CYAN,BLUE,
+  BLACK,BLACK,BLUE,CYAN,CYAN,CYAN,CYAN,CYAN,BLUE,BLUE,BLACK,
+  BLACK,BLACK,BLUE,CYAN,CYAN,BLUE,BLUE,BLUE,BLACK,BLACK,BLACK,
+  BLACK,BLACK,BLACK,BLUE,BLUE,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+};
 
+unsigned char Turtle[]={
+  BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,WHITE,WHITE,WHITE,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,
+  BLACK,BLACK,WHITE,BLACK,BLACK,BLACK,WHITE,YELLOW,YELLOW,YELLOW,WHITE,BLACK,BLACK,BLACK,WHITE,BLACK,
+  BLACK,BLACK,WHITE,YELLOW,BLACK,WHITE,YELLOW,YELLOW,YELLOW,YELLOW,YELLOW,WHITE,BLACK,WHITE,YELLOW,BLACK,
+  BLACK,BLACK,WHITE,YELLOW,YELLOW,RED,RED,YELLOW,YELLOW,YELLOW,RED,RED,WHITE,YELLOW,YELLOW,BLACK,
+  BLACK,BLACK,WHITE,WHITE,YELLOW,YELLOW,RED,RED,RED,RED,RED,RED,WHITE,YELLOW,YELLOW,BLACK,
+  BLACK,RED,RED,YELLOW,YELLOW,RED,RED,WHITE,WHITE,YELLOW,RED,RED,YELLOW,YELLOW,RED,BLACK,
+  WHITE,WHITE,WHITE,RED,RED,RED,WHITE,WHITE,YELLOW,YELLOW,YELLOW,RED,RED,RED,RED,BLACK,
+  BLACK,RED,RED,WHITE,RED,RED,YELLOW,YELLOW,YELLOW,YELLOW,YELLOW,RED,RED,RED,RED,RED,
+  RED,WHITE,RED,RED,WHITE,RED,RED,YELLOW,YELLOW,YELLOW,RED,RED,RED,WHITE,WHITE,WHITE,
+  RED,RED,RED,RED,YELLOW,WHITE,RED,RED,RED,RED,RED,RED,WHITE,WHITE,WHITE,BLACK,
+  BLACK,BLACK,BLACK,YELLOW,YELLOW,YELLOW,WHITE,WHITE,WHITE,WHITE,WHITE,WHITE,YELLOW,YELLOW,YELLOW,BLACK,
+  BLACK,BLACK,YELLOW,YELLOW,YELLOW,YELLOW,BLACK,BLACK,BLACK,BLACK,BLACK,BLACK,YELLOW,YELLOW,YELLOW,YELLOW,
+};
 void StartUp(){
   
       VGA.setColor(RED);
@@ -505,6 +527,8 @@ void StartUp(){
    InitializePositionsObstacules(50,83,118,Bricks,17,8,1);
    InitializePositionsObstacules(55,90,123,Cone,5,4,2);
    InitializePositionsObstacules(50,85,118,Trap,19,2,3);
+   InitializePositionsObstacules(50,85,118,Water,11,10,4);
+   InitializePositionsObstacules(51,84,119,Turtle,16,12,5);
  }
  struct Sprite car;
  void InitCarPosition()
@@ -524,8 +548,6 @@ void setup(){
   VGA.setBackgroundColor(BLACK);
   VGA.setColor(RED);
   
-  
-  //VGA.writeArea(0,0, 9, 9, Title);
   delay(1000);
   int  i,x1 =73, x2=107,y1=0, y2=0;
   for(i = 0 ; i<LineAmount;i++)
@@ -539,57 +561,25 @@ void setup(){
    }
    InitCarPosition();
    InitializeObstacules();
-  //DrawLimits();
-
-  //Loading();
   
-}
-
-void Loading(){
-  
-  /*for(int i = 0; i < 100; i++){
-    if(i%2==0){
-      VGA.putPixel(i, 71, GREEN);
-      VGA.putPixel(i, 70, GREEN);
-    }else{ 
-      VGA.putPixel(i, 71, CYAN);
-      VGA.putPixel(i, 70, CYAN);
-    }
-    delay(50);
-  
-  }*/
-  char* buffer;
-  
-  for(int i = 0; i < 100; i++){
-    if(i%2==0){
-      VGA.putPixel(i, 75, WHITE);
-      VGA.putPixel(i, 74, WHITE);
-    }else{ 
-      VGA.putPixel(i, 75, CYAN);
-      VGA.putPixel(i, 74, CYAN);
-    }
-
-    VGA.printtext(i+5, 72, buffer);
-    delay(1000);
-  }
 }
 
 void DrawLimits(){
   for(int i =0 ; i<120; i++){
     if(i%4==0){
-      //LEFT
+     
       VGA.putPixel(41, i, WHITE);
       VGA.putPixel(42, i, WHITE);
 
-      //RIGHT
+      
       VGA.putPixel(141, i, WHITE);
       VGA.putPixel(142, i, WHITE);
 
     }
-    //LEFT
+    
     VGA.putPixel(40, i, WHITE);
     VGA.putPixel(43, i, WHITE);
-    //RIGHT
+    
     VGA.putPixel(140, i, WHITE);
     VGA.putPixel(143, i, WHITE);
   }
@@ -599,7 +589,6 @@ void DrawObject(){
  
       VGA.clear();
       
-       // VGA.writeArea(105, 70-(i*8), 20, 29, Car2);
       if(Start==1)
       {
         VGA.setColor( GREEN );
@@ -630,12 +619,7 @@ void DrawObject(){
         
         Score++;
         DrawLives();
-      }
-    //TESTING DIMENSIONS
-    VGA.putPixel(0,0,GREEN);
-    VGA.putPixel(0,119,RED);
-    VGA.putPixel(158,0,GREEN);
-    VGA.putPixel(158,119,GREEN);    
+      }  
 }
 
 void TrafficLightAnimation()
@@ -657,14 +641,7 @@ void TrafficLightAnimation()
 
 void DrawPerson()
 {
-  if(PersonAnimation==0)
-    VGA.writeArea(15, 90, 10, 17, Person);
-  else
     VGA.writeArea(15, 90, 11, 17, Person2);
-  PersonAnimation++;
-  
-  if(PersonAnimation>1)
-    PersonAnimation=0;
 }
 
 int CheckBounds(int currentPos, boolean direction){
@@ -687,14 +664,8 @@ void DrawCar()
   else if(digitalRead(FPGA_BTN_0))
     car.posX = CheckBounds(car.posX, false);
     
-    //if(CarAnimation==0)
-      VGA.writeArea(car.posX, car.posY, car.width, car.height, car.image);
-    //else
-      //VGA.writeArea(car.posX, car.posY+1, car.width, car.height, car.image);
-      
-   // CarAnimation++;
-   // if(CarAnimation>1)
-   // CarAnimation=0;
+    VGA.writeArea(car.posX, car.posY, car.width, car.height, car.image);
+    
 }
 
 void DrawLine(int posX, int posY)
@@ -715,10 +686,7 @@ void DrawLives()
   {
     for(int i=0;i<Lives;i++)
     {
-      if(HeartAnimation==0)
-        VGA.writeArea(pos,110 , 9, 8, Heart);
-      else
-        VGA.writeArea(pos,110 , 9, 8, Heart2);
+      VGA.writeArea(pos,110 , 9, 8, Heart);
       pos+=10;
     }
   }
@@ -738,18 +706,18 @@ void DrawObstacules()
        itoa(obstacule->posY,buffer,10); 
        Serial.print("Colision: ");
        Serial.println(buffer);
-       //InitializeObstacules();
+       
        obstacule->posY=96;
        Lives--;
      }
-    //obstaculeToInstantIndex = rand() % ObstaculeAmount;   
+     
     if(obstacule->posY>95)
     {  
        char *buffer ="";
        itoa(obstacule->posY,buffer,10);
        Serial.print("OOR: "); 
        Serial.println(buffer);
-       //InitializeObstacules();
+       
        obstaculeToInstantIndex = rand() % ObstaculeAmount;
        obstacule = &Obstacules[obstaculeToInstantIndex];
        obstacule->posX= obstacule->XPosiblePosition[rand()%XPositionAmount];  
@@ -791,9 +759,7 @@ void About()
 }
   
 void loop(){
-    //if(Lives!=0
-  
-  
+ 
   if(Start==0){
         VGA.printtext(40,0,"Death Race");
         StartUp();
@@ -802,12 +768,43 @@ void loop(){
          delay(150);
   }else if(Start==2){
     About();
-  }else if(FinishGame)
+  }else if(Start==3)
   {
-    VGA.clear();
-    VGA.setBackgroundColor(BLACK);
-    VGA.setColor(RED);
-    VGA.printtext(45,45,"GAME OVER");
-    VGA.writeArea(70,55 ,21, 23, Skull);
+    MergeSort();
+    ShowHighScore();
+  }
+  else if(FinishGame)
+  {
+    
+    if(SkullAnimation==0){
+      VGA.clear();
+      VGA.setBackgroundColor(BLACK);
+      VGA.setColor(RED);
+      VGA.printtext(45,25,"GAME OVER");
+      VGA.setColor(WHITE);
+      VGA.printtext(45,38,"Score:");
+      char* buffers="";
+      itoa(Score,buffers,10);
+      VGA.printtext(100,38,buffers,true );
+      HighScore(Score);
+      SkullAnimation=1;
+      delay(250);
+      
+    }else{
+        if(SkullAnimation==1){
+          VGA.writeArea(70,55 ,21, 23, Skull);
+          SkullAnimation=2;
+        }else{
+          VGA.setColor( BLACK );
+          VGA.drawRect( 70, 55, 21, 23 );
+          SkullAnimation=1;
+        }
+        
+        if(digitalRead(FPGA_BTN_3))
+        {
+          VGA.clear();
+          Start=3;
+        }
+    }
   }
 }
