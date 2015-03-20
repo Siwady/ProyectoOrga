@@ -4,14 +4,13 @@
 #include <time.h>  
 
 #define LineAmount 6
-#define ObstaculeAmount 6
+#define ObstaculeAmount 5
 #define XPositionAmount 3
 #define PointInRectangle(x, y, x1, y1, x2, y2)		((( (x) >= (x1)) && ((y) >= (y1))) && (((x) <= (x2)) && ((y) <= (y2))))
 int y =0;
 int x=0;
 int Lives=3;
 int Score=0;
-int obstaculeToInstantIndex=1;
 int Start=0;
 boolean TrafficLight=false;
 int arrow=0;
@@ -22,6 +21,8 @@ int Scores[]={
   0,0,0,0,0,0,0,0,0,0};
 char* buff2="";
 int currentScoreIndex = 0;
+int obstaculeToInstantIndex=1;
+int obstaculeToInstantIndex2=1;
 boolean HightScore=true;
 struct Rectangle {
 		unsigned int x1, y1, x2, y2;
@@ -101,10 +102,36 @@ struct Sprite{
   unsigned char *image;
   
 };
+int getIndexLaneForSecondObstacle(int indexLane)
+{
+	if(indexLane==0)
+		return 2;
+	if(indexLane==1)
+		return 0;
+	if(indexLane==2)
+		return 1;
+  return 1;
+} 
 
+int getIndexForSecondObstacle(int index)
+{
+	if(index==0)
+		return 2;
+	if(index==1)
+		return 0;
+	if(index==2)
+		return 1;
+	if(index==3)
+		return 4;
+	if(index==4)
+		return 3;
+	
+ return 1;
+}
 struct Obstacule{
   int posX;
   int posY;
+  int lane;
   int XPosiblePosition[XPositionAmount];
   int width ;
   int height;
@@ -344,54 +371,6 @@ unsigned char Bricks[] = {
   RED,RED,BLACK,RED,RED,RED,RED,RED,BLACK,RED,RED,RED,RED,RED,BLACK,RED,RED, 
 };
 
-unsigned char Person[] = {
-    GREEN, GREEN, GREEN, YELLOW, YELLOW, YELLOW, YELLOW, GREEN, GREEN,GREEN,
-    GREEN, GREEN, YELLOW, YELLOW, WHITE, WHITE, YELLOW, YELLOW, GREEN, GREEN,   
-    GREEN, GREEN, YELLOW, WHITE, WHITE, CYAN, WHITE, GREEN, GREEN,GREEN,
-    GREEN, GREEN, YELLOW, WHITE, WHITE, WHITE, WHITE, GREEN, GREEN,GREEN,    
-    GREEN, GREEN, YELLOW, WHITE, WHITE, WHITE, GREEN, GREEN, GREEN,GREEN,    
-    GREEN, GREEN, BLUE, WHITE, WHITE, WHITE, BLUE, GREEN, GREEN,GREEN,   
-    GREEN, BLUE, BLUE, BLUE, WHITE, BLUE, BLUE, BLUE, GREEN,GREEN,   
-    GREEN, WHITE, BLUE, BLUE, BLACK, BLUE, BLUE, WHITE, GREEN,GREEN,
-    GREEN, WHITE, BLUE, BLUE, BLACK, BLUE, BLUE, WHITE, GREEN,GREEN,   
-    GREEN, WHITE, BLUE, BLUE, WHITE, BLUE, BLUE, WHITE, GREEN,GREEN,
-    GREEN, GREEN, CYAN, CYAN, CYAN, CYAN, CYAN, GREEN, GREEN,GREEN,
-    GREEN, GREEN, CYAN, CYAN, CYAN, CYAN, CYAN, GREEN, GREEN,GREEN,
-    GREEN, GREEN, CYAN, CYAN, CYAN, CYAN, CYAN, GREEN, GREEN,GREEN,
-    GREEN, GREEN, GREEN, WHITE, GREEN, WHITE, GREEN, GREEN, GREEN,GREEN,
-    GREEN, GREEN, GREEN, WHITE, GREEN, GREEN, WHITE, GREEN, GREEN,GREEN,
-    GREEN, GREEN, GREEN, WHITE, GREEN, GREEN, GREEN, WHITE, GREEN,GREEN,
-    GREEN, GREEN, RED, RED, GREEN, RED, RED, GREEN, GREEN,GREEN,  
-
-};
-
-unsigned char Person2[] = {
-    GREEN,GREEN, GREEN, GREEN, YELLOW, YELLOW, YELLOW, YELLOW, GREEN, GREEN,GREEN,
-    GREEN,GREEN, GREEN, YELLOW, YELLOW, WHITE, WHITE, YELLOW, YELLOW, GREEN,GREEN,
-    GREEN,GREEN, GREEN, YELLOW, WHITE, WHITE, CYAN, WHITE, GREEN, GREEN,GREEN,
-    GREEN,GREEN, GREEN, YELLOW, WHITE, WHITE, WHITE, WHITE, GREEN, GREEN,GREEN,
-    GREEN,GREEN, GREEN, YELLOW, WHITE, WHITE, WHITE, GREEN, GREEN, GREEN,GREEN,    
-    GREEN,GREEN, GREEN, BLUE, WHITE, WHITE, WHITE, BLUE, GREEN, GREEN,GREEN,
-    GREEN,GREEN, BLUE, BLUE, BLUE, WHITE, BLUE, BLUE, BLUE, GREEN,GREEN,   
-    GREEN,GREEN, WHITE, BLUE, BLUE, BLACK, BLUE, BLUE, WHITE, GREEN,GREEN,
-    GREEN,WHITE, GREEN, BLUE, BLUE, BLACK, BLUE, BLUE, GREEN, WHITE,GREEN,   
-    WHITE,GREEN, GREEN, BLUE, BLUE, WHITE, BLUE, BLUE, GREEN, GREEN,WHITE,
-    GREEN,GREEN, GREEN, CYAN, CYAN, CYAN, CYAN, CYAN, GREEN, GREEN,GREEN,
-    GREEN,GREEN, GREEN, CYAN, CYAN, CYAN, CYAN, CYAN, GREEN, GREEN,GREEN,
-    GREEN,GREEN, GREEN, CYAN, CYAN, CYAN, CYAN, CYAN, GREEN, GREEN,GREEN,
-    GREEN,GREEN, GREEN, GREEN, WHITE, GREEN, WHITE, GREEN, GREEN, GREEN,GREEN,
-    GREEN,GREEN, GREEN, GREEN, WHITE, GREEN, WHITE, GREEN, GREEN, GREEN,GREEN,
-    GREEN,GREEN, GREEN, GREEN, WHITE, GREEN, WHITE, GREEN, GREEN, GREEN,GREEN,
-    GREEN,GREEN, GREEN, RED, RED, GREEN, RED, RED, GREEN, GREEN,GREEN,    
-
-};
-
-unsigned char Cone[] = {
-   RED,BLACK,RED,BLACK,RED,
-   WHITE,WHITE,WHITE,WHITE,WHITE,
-   BLACK,WHITE,WHITE,WHITE,BLACK,
-   WHITE,WHITE,WHITE,WHITE,WHITE,
-};
 unsigned char Trap[] = { 
     BLACK,WHITE, BLACK, WHITE, BLACK, WHITE, BLACK, WHITE, BLACK, WHITE, BLACK, WHITE, BLACK, WHITE, BLACK, WHITE, BLACK, WHITE, BLACK,
     WHITE,WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE,
@@ -525,10 +504,9 @@ void StartUp(){
  {
    InitializePositionsObstacules(47,83,115,Car3,20,29,0);
    InitializePositionsObstacules(50,83,118,Bricks,17,8,1);
-   InitializePositionsObstacules(55,90,123,Cone,5,4,2);
-   InitializePositionsObstacules(50,85,118,Trap,19,2,3);
-   InitializePositionsObstacules(50,85,118,Water,11,10,4);
-   InitializePositionsObstacules(51,84,119,Turtle,16,12,5);
+   InitializePositionsObstacules(50,85,118,Trap,19,2,2);
+   InitializePositionsObstacules(50,85,118,Water,11,10,3);
+   InitializePositionsObstacules(51,84,119,Turtle,16,12,4);
  }
  struct Sprite car;
  void InitCarPosition()
@@ -606,7 +584,6 @@ void DrawObject(){
         VGA.writeArea(0, 11, 8, 8, Coin);
         VGA.printtext(9,11,buffers,true );
         
-        DrawPerson();
         DrawLines();
         DrawLimits();
         
@@ -637,11 +614,6 @@ void TrafficLightAnimation()
     VGA.setBackgroundColor(WHITE);
     VGA.printtext(83,25,"GO");
     delay(500);
-}
-
-void DrawPerson()
-{
-    VGA.writeArea(15, 90, 11, 17, Person2);
 }
 
 int CheckBounds(int currentPos, boolean direction){
@@ -695,37 +667,53 @@ void DrawLives()
 void DrawObstacules()
 {
      struct Obstacule *obstacule= &Obstacules[obstaculeToInstantIndex];
+     struct Obstacule *obstacule2= &Obstacules[obstaculeToInstantIndex2];
+     CheckIfLaneEqual(obstacule,obstacule2);
+    
      Rectangle r1 ={obstacule->posX,obstacule->posY,(obstacule->posX+obstacule->width),(obstacule->posY+obstacule->height) };
      Rectangle r2 ={car.posX,car.posY,(car.posX+car.width),(car.posY+car.height) };
+     
+     Rectangle r3 ={obstacule2->posX,obstacule2->posY,(obstacule2->posX+obstacule2->width),(obstacule2->posY+obstacule2->height) };
+     Rectangle r4 ={car.posX,car.posY,(car.posX+car.width),(car.posY+car.height) };
      delay(10);
      int collide =Collide(&r1, &r2);
-     
-     if(collide ==1)
+     int collide2= Collide(&r3,&r4);
+     if(collide ==1 || collide2 ==1)
      {
-       char *buffer ="";
-       itoa(obstacule->posY,buffer,10); 
-       Serial.print("Colision: ");
-       Serial.println(buffer);
-       
-       obstacule->posY=96;
-       Lives--;
+        if(collide==1)
+           obstacule->posY=96;
+        if(collide2==1)
+           obstacule2->posY=96;
+        Lives--;
      }
-     
-    if(obstacule->posY>95)
-    {  
-       char *buffer ="";
-       itoa(obstacule->posY,buffer,10);
-       Serial.print("OOR: "); 
-       Serial.println(buffer);
        
+    if(obstacule->posY >95)
+    {  
        obstaculeToInstantIndex = rand() % ObstaculeAmount;
        obstacule = &Obstacules[obstaculeToInstantIndex];
-       obstacule->posX= obstacule->XPosiblePosition[rand()%XPositionAmount];  
+       int newLane =rand()%XPositionAmount;
+       obstacule->posX= obstacule->XPosiblePosition[newLane];  
+       obstacule->lane =newLane;
        obstacule->posY=0;
-
-    }
+    }  
+     
+    if(obstacule2->posY >95)
+    {
+        obstaculeToInstantIndex2 = getIndexForSecondObstacle(obstaculeToInstantIndex);
+        obstacule2 = &Obstacules[obstaculeToInstantIndex2];
+	int newLane2 = getIndexLaneForSecondObstacle(obstacule->lane);
+        obstacule2->posX= obstacule2->XPosiblePosition[newLane2];
+	  obstacule2->lane=newLane2;
+        obstacule2->posY=0;
+    }  
+     
+       
+       
+    
     VGA.writeArea(obstacule->posX, obstacule->posY,obstacule->width, obstacule->height, obstacule->objectToInstantiate); 
+    VGA.writeArea(obstacule2->posX, obstacule2->posY,obstacule2->width, obstacule2->height, obstacule2->objectToInstantiate); 
     obstacule->posY +=3;
+    obstacule2->posY+=3;
    
 }
 
@@ -757,7 +745,16 @@ void About()
       VGA.clear();
     }
 }
-  
+  void CheckIfLaneEqual(struct Obstacule * obstacule,struct Obstacule * obstacule2)
+{
+	
+   if(obstacule->lane==obstacule2->lane)
+   {
+	   int newLane =getIndexLaneForSecondObstacle(obstacule2->lane);
+         obstacule->posX= obstacule->XPosiblePosition[newLane]; 
+		 obstacule->lane = newLane;
+   }
+}
 void loop(){
  
   if(Start==0){
